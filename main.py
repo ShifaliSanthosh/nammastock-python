@@ -10,7 +10,25 @@ API_KEY = os.getenv("API_KEY")
 BASE_URL = "https://stock.indianapi.in"
 
 
-@app.get("/news")
+
+@app.get("/dashboard")
+def get_dashboard():
+    """Combined endpoint for Angular dashboard"""
+    try:
+        news = get_news()
+        gainers = get_top_gainers()
+        losers = get_top_losers()
+
+        return {
+            "news": news.get("titles", []),
+            "top_gainers": gainers.get("top_gainers", []),
+            "top_losers": losers.get("top_losers", [])
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Dashboard error: {str(e)}")
+
+
+
 def get_news():
     url = f"{BASE_URL}/news"
     headers = {
@@ -29,7 +47,7 @@ def get_news():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/top-gainers")
+
 def get_top_gainers():
     url = f"{BASE_URL}/trending"
     headers = {
@@ -46,7 +64,7 @@ def get_top_gainers():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/top-losers")
+
 def get_top_losers():
     url = f"{BASE_URL}/trending"
     headers = {
