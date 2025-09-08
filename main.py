@@ -40,8 +40,19 @@ def get_top_gainers():
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
-        gainners = data.get("trending_stocks", {}).get("top_gainers", [][:5])
-        return {"top_gainers": gainners}
+        gainers_raw = data.get("trending_stocks", {}).get(
+            "top_gainers", [])[:5]
+        gainers = [
+            {
+                "company_name": g.get("company_name"),
+                "price": g.get("price"),
+                "percent_change": g.get("percent_change"),
+                "net_change": g.get("net_change"),
+            }
+            for g in gainers_raw
+        ]
+
+        return {"top_gainers": gainers}
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -57,7 +68,16 @@ def get_top_losers():
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
-        losers = data.get("trending_stocks", {}).get("top_losers", [][:5])
+        losers_raw = data.get("trending_stocks", {}).get("top_losers", [][:5])
+        losers = [
+            {
+                "company_name": l.get("company_name"),
+                "price": l.get("price"),
+                "percent_change": l.get("percent_change"),
+                "net_change": l.get("net_change"),
+            }
+            for l in losers_raw
+        ]
         return {"top_losers": losers}
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=str(e))
