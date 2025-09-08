@@ -2,6 +2,8 @@ from fastapi import FastAPI
 import requests
 from dotenv import load_dotenv
 import os
+from fastapi import HTTPException
+
 load_dotenv()
 app = FastAPI()
 API_KEY = os.getenv("API_KEY")
@@ -15,5 +17,14 @@ def get_news():
         "x-api-key": API_KEY,
         "Accept": "application/json"
     }
-    response = requests.get(url, headers=headers)
-    return response.json()
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        
+        titles = [item.get("title") for item in data]
+
+        return {"titles": titles}
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
