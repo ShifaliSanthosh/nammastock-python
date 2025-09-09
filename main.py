@@ -17,11 +17,13 @@ def get_dashboard():
         news = get_news()
         gainers = get_top_gainers()
         losers = get_top_losers()
+        historical_data = get_historical_nifty()
 
         return {
             "news": news.get("titles", []),
             "top_gainers": gainers.get("top_gainers", []),
-            "top_losers": losers.get("top_losers", [])
+            "top_losers": losers.get("top_losers", []),
+            "historical_data": historical_data.get("nifty", [])
         }
     except Exception as e:
         raise HTTPException(
@@ -94,5 +96,61 @@ def get_top_losers():
             for l in losers_raw
         ]
         return {"top_losers": losers}
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+def get_historical_nifty():
+    url = f"{BASE_URL}/historical_data"
+    headers = {
+        "x-api-key": API_KEY,
+        "Accept": "application/json"
+    }
+    params = {
+        "stock_name": "nifty",
+        "period": "max",
+        "filter": "default",
+        "key": "all"
+    }
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        return {"nifty": data}
+    except requests.exceptions.RequestException as e:
+        if e.response is not None:
+            raise HTTPException(status_code=500, detail=f"Historical API error: {e.response.text}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/commodities")
+def get_commodities():
+    url = f"{BASE_URL}/commodities"
+    headers = {
+        "x-api-key": API_KEY,
+        "Accept": "application/json"
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        # since data is a list, just slice it
+        commodities_raw = data[:10]
+
+        commodities = [
+            {
+                "product": c.get("product"),
+                "expiry": c.get("expiry"),
+                "change": c.get("change"),
+                "per_change": c.get("per_change"),
+            }
+            for c in commodities_raw
+        ]
+
+
+        return {"commodities": commodities}
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=str(e))
