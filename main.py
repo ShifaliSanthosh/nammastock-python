@@ -154,3 +154,26 @@ def get_commodities():
         return {"commodities": commodities}
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/ipo")
+def get_ipo():
+    url = f"{BASE_URL}/ipo"
+    headers = {
+        "x-api-key": API_KEY,
+        "Accept": "application/json"
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        ipo_items = data.get("upcoming", [])
+        ipo_list = [{"name": item.get("name"),
+                     "status": item.get("status"),
+                     "additional_text": item.get("additional_text"),
+                     "document_url": item.get("document_url"),
+                     }
+                    for item in ipo_items
+                    ]
+        return {"ipo": ipo_list}
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
