@@ -3,12 +3,21 @@ import requests
 from dotenv import load_dotenv
 import os
 from fastapi import HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 app = FastAPI()
 API_KEY = os.getenv("API_KEY")
 BASE_URL = "https://stock.indianapi.in"
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/dashboard")
 def get_dashboard():
