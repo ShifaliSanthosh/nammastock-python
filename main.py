@@ -125,3 +125,34 @@ def get_historical_nifty():
         if e.response is not None:
             raise HTTPException(status_code=500, detail=f"Historical API error: {e.response.text}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/commodities")
+def get_commodities():
+    url = f"{BASE_URL}/commodities"
+    headers = {
+        "x-api-key": API_KEY,
+        "Accept": "application/json"
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        # since data is a list, just slice it
+        commodities_raw = data[:10]
+
+        commodities = [
+            {
+                "product": c.get("product"),
+                "expiry": c.get("expiry"),
+                "change": c.get("change"),
+                "per_change": c.get("per_change"),
+            }
+            for c in commodities_raw
+        ]
+
+
+        return {"commodities": commodities}
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
